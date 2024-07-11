@@ -3,13 +3,19 @@ import fs from "node:fs";
 import http, { IncomingMessage, ServerResponse } from "node:http";
 import { handleAuth } from "./routes";
 import { formatRequestUrl } from "./utils/helpers";
+import { fileURLToPath } from "url";
 import { HTTP_METHODS, PATHS, STATUS_CODES } from "./constants/types";
 import { notFoundError } from "./utils/errors";
 import { handleNotes } from "./routes/notes";
 
-const __dirname = path.dirname(new URL(import.meta.url).pathname);
+// const __dirname = path.dirname(new URL(import.meta.url).pathname);
+// const htmlFilePath = path.join(__dirname, "../public", "index.html");
+// const htmlFileContent = fs.readFileSync(htmlFilePath, "utf8");
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const htmlFilePath = path.join(__dirname, "../public", "index.html");
-const htmlFileContent = fs.readFileSync(htmlFilePath, "utf8");
+const htmlFileContent = fs.readFileSync(htmlFilePath, "utf-8");
 
 function sendHTML(res: ServerResponse, html: string) {
   res.writeHead(STATUS_CODES.OK, { "Content-Type": "text/html" });

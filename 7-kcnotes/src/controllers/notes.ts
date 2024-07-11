@@ -9,7 +9,16 @@ import { STATUS_CODES } from "../constants/types";
 export async function getNotes(req: IncomingMessage, res: ServerResponse) {
   sendSuccess(res, { data: { notes: await Note.getNotes() } });
 }
-export function getNote(req: IncomingMessage, res: ServerResponse) {}
+export function getNote(req: IncomingMessage, res: ServerResponse) {
+  const auth = checkAuth(req, res);
+  if (!auth) return;
+
+  const userId = getUserId(req);
+
+  Note.getUserNotes(userId).then((notes) => {
+    sendSuccess(res, { data: { user: userId, notes } });
+  });
+}
 
 export function addNote(req: IncomingMessage, res: ServerResponse) {
   const auth = checkAuth(req, res);
@@ -41,5 +50,47 @@ export function addNote(req: IncomingMessage, res: ServerResponse) {
     });
   });
 }
-export function updateNote(req: IncomingMessage, res: ServerResponse) {}
-export function deleteNote(req: IncomingMessage, res: ServerResponse) {}
+export function updateNote(req: IncomingMessage, res: ServerResponse) {
+  const auth = checkAuth(req, res);
+  if (!auth) return;
+
+  const noteId = Number(req.url?.split("/")[2]);
+
+  let body = "";
+
+  req.on("data", (chunk) => {
+    body += chunk.toString();
+  });
+
+  req.on("end", async () => {
+    const { title, content } = JSON.parse(body);
+    if (!title || !content) {
+      return badRequestError(res, "All fields required");
+    }
+    const note = await Note.updateNote({
+      noteId,
+      title,
+      content,
+    });
+    if (!note) {
+      return internalServerError(res, "Error updating note");
+    }
+
+    sendSuccess(res, {
+      data: { note },
+    });
+  });
+}
+export function deleteNote(req: IncomingMessage, res: ServerResponse) {
+  const auth = checkAuth(req, res);
+  if (!auth) return;
+
+  const noteId = Number(req.url?.split("/")[2]);
+  Note.deleteNote({
+    noteId,
+  }).then(() => {
+    sendSuccess(res, {
+      statusCode: STATUS_CODES.OK,
+    });
+  });
+}
