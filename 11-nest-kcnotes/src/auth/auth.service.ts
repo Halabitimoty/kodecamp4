@@ -63,4 +63,23 @@ export class AuthService {
       }),
     };
   }
+
+  async update(user: SignupDto, currentUser: any): Promise<{ token: string }> {
+    const salt = 10;
+    const passwordHash = await bcrypt.hash(user.password, salt);
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id: currentUser.id },
+      data: {
+        ...user,
+        password: passwordHash,
+      },
+    });
+
+    return {
+      token: this.jwt.sign({
+        id: updatedUser.id,
+      }),
+    };
+  }
 }

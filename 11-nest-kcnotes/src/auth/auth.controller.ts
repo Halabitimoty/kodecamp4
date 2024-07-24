@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   HttpCode,
+  Patch,
   Post,
   Req,
   UseGuards,
@@ -40,5 +41,11 @@ export class AuthController {
     return {
       token: null,
     };
+  }
+
+  @Patch("updateUser")
+  @UseGuards(JwtAuthGuard)
+  async update(@Req() req: Request, @Body() user: SignupDto) {
+    return await this.authService.update(user, (req as any).user);
   }
 }
