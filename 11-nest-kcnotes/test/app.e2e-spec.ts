@@ -3,7 +3,7 @@ import { INestApplication } from "@nestjs/common";
 import * as request from "supertest";
 import { AppModule } from "./../src/app.module";
 import { NotesService } from "../src/notes/notes.service";
-import { AuthService } from "src/auth/auth.service";
+import { AuthService } from "../src/auth/auth.service";
 
 describe("AppController (e2e) AUTH", () => {
   let app: INestApplication;
