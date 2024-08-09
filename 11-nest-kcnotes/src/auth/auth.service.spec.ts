@@ -139,7 +139,9 @@ describe("AuthService", () => {
 
       jest.spyOn(prismaService.user, "update").mockResolvedValue(user);
       const result = await authService.update(user, user.id);
-      expect(result).toEqual(user);
+      expect(result).toEqual({
+        token: "mockToken",
+      });
     });
 
     it("should throw an error if user does not exist", async () => {
@@ -153,6 +155,49 @@ describe("AuthService", () => {
 
       jest.spyOn(prismaService.user, "update").mockResolvedValue(null);
       await expect(authService.update(user, user.id)).rejects.toThrow(
+        new BadRequestException(`User not found.`)
+      );
+    });
+  });
+
+  describe("deleteUser", () => {
+    const user = {
+      id: "1",
+      username: "kodecamp",
+      password: "password",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const notes = [
+      {
+        id: "1",
+        title: "note1",
+        content: "content1",
+        userId: "1",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: "2",
+        title: "note2",
+        content: "content2",
+        userId: "1",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ];
+
+    it("should delete a user", async () => {
+      jest.spyOn(prismaService.user, "delete").mockResolvedValue(user);
+
+      const result = await authService.deleteUser(user.id);
+      expect(result).toBeUndefined();
+    });
+
+    it("should throw an error if user does not exist", async () => {
+      jest.spyOn(prismaService.user, "delete").mockResolvedValue(null);
+      await expect(authService.deleteUser(user.id)).rejects.toThrow(
         new BadRequestException(`User not found.`)
       );
     });

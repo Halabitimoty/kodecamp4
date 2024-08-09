@@ -1,14 +1,14 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcryptjs';
-import { PrismaService } from '../prisma/prisma.service';
-import { SignupDto } from './dto/signup-user.dto';
+import { BadRequestException, Injectable } from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
+import * as bcrypt from "bcryptjs";
+import { PrismaService } from "../prisma/prisma.service";
+import { SignupDto } from "./dto/signup-user.dto";
 
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
-    private jwt: JwtService,
+    private jwt: JwtService
   ) {}
 
   async signup(user: SignupDto): Promise<{ token: string }> {
@@ -18,7 +18,7 @@ export class AuthService {
 
     if (existingUser) {
       throw new BadRequestException(
-        `User with username '${existingUser.username}' already exists.`,
+        `User with username '${existingUser.username}' already exists.`
       );
     }
 
@@ -50,7 +50,7 @@ export class AuthService {
 
     const correctPassword = await bcrypt.compare(
       user.password,
-      existingUser.password,
+      existingUser.password
     );
 
     if (!correctPassword) {
@@ -75,11 +75,28 @@ export class AuthService {
         password: passwordHash,
       },
     });
-
+    if (!updatedUser) {
+      throw new BadRequestException(`User not found.`);
+    }
+    const token = this.jwt.sign({
+      id: updatedUser.id,
+    });
     return {
-      token: this.jwt.sign({
-        id: updatedUser.id,
-      }),
+      token,
     };
   }
+  async deleteUser(userId: string): Promise<void> {
+  const user =  await this.prisma.user.delete({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new BadRequestException(`User not found.`);
+    }
+
+  await this.prisma.note.deleteMany({
+      where: { userId },
+    });
+  }
+
 }
